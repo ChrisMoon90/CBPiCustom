@@ -309,10 +309,10 @@ class CraftBeerPi(ActorAPI, SensorAPI):
     def actor2(self, description="", power=True, **options):
 
         def decorator(f):
-            print f()
-            print f
-            print options
-            print description
+            print(f())
+            print(f)
+            print(options)
+            print(description)
             return f
         return decorator
 

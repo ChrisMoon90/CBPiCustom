@@ -7,5 +7,5 @@ try:
 except ValueError:
   port = 5000
 
-socketio.run(app, host='0.0.0.0', port=port)
-
+app.debug=True
+socketio.run(app, host='192.168.0.30', port=port)

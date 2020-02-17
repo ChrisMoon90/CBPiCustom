@@ -48,7 +48,7 @@ class myThread (threading.Thread):
 
         while self.runnig:
             try:
-                app.logger.info("READ TEMP")
+                #app.logger.info("READ TEMP")
                 ## Test Mode
                 if self.sensor_name is None:
                     return
