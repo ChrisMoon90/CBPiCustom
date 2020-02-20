@@ -7,6 +7,8 @@ try:
 except Exception as e:
     pass
 
+GPIO.setwarnings(False)
+
 class Buzzer(object):
 
     sound = ["H", 0.1, "L", 0.1, "H", 0.1, "L", 0.1, "H", 0.1, "L"]

@@ -45,7 +45,7 @@ def getPlugins():
         if filename.endswith(".DS_Store") or filename.endswith(".py") or filename.endswith(".pyc"):
             continue
         result.append(filename)
-
+    print(result)
     return json.dumps(result)
 
 @blueprint.route('/<name>', methods=['GET'])
