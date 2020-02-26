@@ -3,7 +3,7 @@ from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
 import string
-import pylibftdi
+#import pylibftdi
 from pylibftdi.device import Device
 from pylibftdi.driver import FtdiError
 from pylibftdi import Driver
@@ -77,11 +77,10 @@ def get_sensor(index):  #SELECT DEVICE
             time.sleep(2)
 
 def get_temp(dev_IN):    #COLLECT TEMP READING
-    dev_IN.send_cmd("C,0") # turn off continuous mode
-    dev_IN.flush()
     while True:
         try:
             dev_IN.send_cmd("R")
+            time.sleep(1)
             lines = dev_IN.read_lines()
             for i in range(len(lines)):
                 if lines[i][0] != '*':
@@ -92,16 +91,16 @@ def get_temp(dev_IN):    #COLLECT TEMP READING
                 print( "Error1, ", e)
                 time.sleep(2)
 
-def run_Temp(dev_active):
-    dev_active.send_cmd("C,0") # turn off continuous mode
-    dev_active.flush()
+def run_Temp(dev_active):  #PERFORMS ERROR CHECKING
     try:
         temp_long = get_temp(dev_active)
+        #cbpi.app.logger.info("temp_long = %s" % temp_long)
         try:
-            temp = round(float(temp_long), 2)
-            return temp
+            #temp = round(float(temp_long), 2)
+            return temp_long
         except: #catch all exceptions
-            print("Error Converting temp_long with float")        
+            print("Error Converting temp_long with float")
+            time.sleep(1)
     except pylibftdi.FtdiError as e:
         print("Error1, ", e)
         time.sleep(2)
@@ -133,16 +132,26 @@ class AtlasSensor(SensorActive):
         Active sensor has to handle its own loop
         :return: 
         '''
+        index = self.sensorSelect
+        #print("Index Selected = ", index)              
+        dev_active = get_sensor(index)
+        #print("Active Device = ", dev_active)
+        
+        dev_active.send_cmd("C,0") # turn off continuous mode
+        time.sleep(1)
+        dev_active.flush()
+        cbpi.app.logger.info("Device %s Flushed" % dev_active)
+        time.sleep(1)
+        
+        dev_active.__del__()
         while self.is_running():
-            index = self.sensorSelect
-            #print("Index Selected = ", index)      
             dev_active = get_sensor(index)
-            #print("Active Device = ", dev_active) 
+            time.sleep(1)
             reading = run_Temp(dev_active)
             print("Sensor Reading = ", reading)
             
             self.data_received(reading)
-            self.api.socketio.sleep(3)
+            self.api.socketio.sleep(1)
             
 
 @cbpi.initalizer()

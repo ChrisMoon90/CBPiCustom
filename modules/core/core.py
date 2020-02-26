@@ -491,3 +491,4 @@ class CraftBeerPi(ActorAPI, SensorAPI):
 
         for  value in self.cache.get("background"):
             t = self.socketio.start_background_task(target=job,  interval=value.get("interval"),  method=value.get("function"))
+        #print(self.cache)
