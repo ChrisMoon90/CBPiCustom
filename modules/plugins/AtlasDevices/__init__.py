@@ -3,7 +3,6 @@ from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
 import string
-#import pylibftdi
 from pylibftdi.device import Device
 from pylibftdi.driver import FtdiError
 from pylibftdi import Driver
@@ -48,13 +47,11 @@ class AtlasDevice(Device):
 
     def send_cmd(self, cmd):
         buf = cmd + "\r"        # add carriage return
-        #print("buf = ", buf)
         try:
             self.write(buf)
-            #print("SND =", self.write(buf))
             return True
         except FtdiError:
-            print("Failed to send command to the sensor.")
+            print("Error 4: send_cmd failed.")
             return False
 
 
@@ -67,29 +64,31 @@ def get_ftdi_device_list():
     return dev_list
 
 def get_sensor(index):  #SELECT DEVICE   
-    devices = get_ftdi_device_list()  
-    while True:
+    devices = get_ftdi_device_list()
+    global dev
+    try:
+        dev = AtlasDevice(devices[int(index)])
+        return dev
+    except pylibftdi.FtdiError as e:
         try:
-            dev = AtlasDevice(devices[int(index)])
-            return dev
-        except pylibftdi.FtdiError as e:
+            dev.__del__()
+        except:
             print( "Error0, ", e)
             time.sleep(2)
 
 def get_temp(dev_IN):    #COLLECT TEMP READING
-    while True:
-        try:
-            dev_IN.send_cmd("R")
-            time.sleep(1)
-            lines = dev_IN.read_lines()
-            for i in range(len(lines)):
-                if lines[i][0] != '*':
-                    temp = lines[i]
-                    dev_IN.__del__()
-                    return temp
-        except pylibftdi.FtdiError as e:
-                print( "Error1, ", e)
-                time.sleep(2)
+    try:
+        dev_IN.send_cmd("R")
+        time.sleep(1)
+        lines = dev_IN.read_lines()
+        for i in range(len(lines)):
+            if lines[i][0] != '*':
+                temp = lines[i]
+                dev_IN.__del__()
+                return temp
+    except pylibftdi.FtdiError as e:
+            print( "Error1, ", e)
+            time.sleep(2)
 
 def run_Temp(dev_active):  #PERFORMS ERROR CHECKING
     try:
@@ -99,7 +98,7 @@ def run_Temp(dev_active):  #PERFORMS ERROR CHECKING
             #temp = round(float(temp_long), 2)
             return temp_long
         except: #catch all exceptions
-            print("Error Converting temp_long with float")
+            print("Error5: could not convert temp_long with float")
             time.sleep(1)
     except pylibftdi.FtdiError as e:
         print("Error1, ", e)
@@ -132,10 +131,8 @@ class AtlasSensor(SensorActive):
         Active sensor has to handle its own loop
         :return: 
         '''
-        index = self.sensorSelect
-        #print("Index Selected = ", index)              
+        index = self.sensorSelect             
         dev_active = get_sensor(index)
-        #print("Active Device = ", dev_active)
         
         dev_active.send_cmd("C,0") # turn off continuous mode
         time.sleep(1)
@@ -144,15 +141,20 @@ class AtlasSensor(SensorActive):
         time.sleep(1)
         
         dev_active.__del__()
+        
         while self.is_running():
-            dev_active = get_sensor(index)
-            time.sleep(1)
-            reading = run_Temp(dev_active)
-            print("Sensor Reading = ", reading)
-            
-            self.data_received(reading)
-            self.api.socketio.sleep(1)
-            
+            try:
+                dev_active = get_sensor(index)
+                time.sleep(1)
+                reading = run_Temp(dev_active)
+                print("Sensor Reading = ", reading)
+                
+                self.data_received(reading)
+                self.api.socketio.sleep(1)
+            except:
+                print("Error3: could not run execute loop.")
+                time.sleep(2)
+
 
 @cbpi.initalizer()
 def init(cbpi):  
