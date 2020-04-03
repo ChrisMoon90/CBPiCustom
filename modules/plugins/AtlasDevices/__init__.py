@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+print("Loading Atlas")
 from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
+
 import string
+import pylibftdi
 from pylibftdi.device import Device
 from pylibftdi.driver import FtdiError
 from pylibftdi import Driver
+
 import os
 import time
-
 
 class AtlasDevice(Device):
 
@@ -65,13 +68,16 @@ def get_ftdi_device_list():
 
 def get_sensor(index):  #SELECT DEVICE   
     devices = get_ftdi_device_list()
+    #print(devices)
     global dev
     try:
+        print(devices[int(index)])
         dev = AtlasDevice(devices[int(index)])
         return dev
     except pylibftdi.FtdiError as e:
         try:
             dev.__del__()
+            print("Atlas Device Deleted")
         except:
             print( "Error0, ", e)
             time.sleep(2)
@@ -79,7 +85,9 @@ def get_sensor(index):  #SELECT DEVICE
 def get_temp(dev_IN):    #COLLECT TEMP READING
     try:
         dev_IN.send_cmd("R")
-        time.sleep(1)
+        
+        time.sleep(1) #WANT TO MAKE THIS SOCKETIOSLEEP
+        
         lines = dev_IN.read_lines()
         for i in range(len(lines)):
             if lines[i][0] != '*':
@@ -122,8 +130,9 @@ class AtlasSensor(SensorActive):
     def stop(self):
         '''
         Stop the sensor. Is called when the sensor config is updated or the sensor is deleted
-        :return: 
+        :return:
         '''
+        print("Atlas Sensor Stopped")
         pass
 
     def execute(self):
@@ -131,31 +140,30 @@ class AtlasSensor(SensorActive):
         Active sensor has to handle its own loop
         :return: 
         '''
-        index = self.sensorSelect             
-        dev_active = get_sensor(index)
-        
-        dev_active.send_cmd("C,0") # turn off continuous mode
-        time.sleep(1)
-        dev_active.flush()
-        cbpi.app.logger.info("Device %s Flushed" % dev_active)
-        time.sleep(1)
-        
-        dev_active.__del__()
+        #dev_active.send_cmd("C,0") # turn off continuous mode
+        #dev_active.flush()
+        #cbpi.app.logger.info("Device %s Flushed" % dev_active)
         
         while self.is_running():
             try:
+                index = self.sensorSelect
+                print("index = ", index)
                 dev_active = get_sensor(index)
-                time.sleep(1)
+                #self.sleep(0.25)
                 reading = run_Temp(dev_active)
-                print("Sensor Reading = ", reading)
+                print("Sensor Reading = %s" % reading)
                 
                 self.data_received(reading)
-                self.api.socketio.sleep(1)
+                self.sleep(3)
             except:
                 print("Error3: could not run execute loop.")
-                time.sleep(2)
+                self.sleep(2)
+                
+    #@classmethod
+    #def init_global(self):
+        #pass
 
 
-@cbpi.initalizer()
-def init(cbpi):  
-    pass
+#@cbpi.initalizer()
+#def init(cbpi):  
+    #pass

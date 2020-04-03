@@ -93,6 +93,7 @@ class SensorAPI(object):
             value.get("class").init_global()
 
         for key in self.cache.get("sensors"):
+            print("Sensor Initiated: ", key)
             self.init_sensor(key)
 
     def stop_sensor(self, id):
@@ -111,7 +112,7 @@ class SensorAPI(object):
         :param id: 
         :return: 
         '''
-
+        print("init sensor id = ", id)
         def start_active_sensor(instance):
             '''
             start active sensors as background job
@@ -136,6 +137,7 @@ class SensorAPI(object):
             else:
                 # Active Sensors
                 value.mode = "A"
+                print("Starting Active Sensor Background Task")
                 t = self.socketio.start_background_task(target=start_active_sensor, instance=value.instance)
 
         except Exception as e:
@@ -401,6 +403,7 @@ class CraftBeerPi(ActorAPI, SensorAPI):
 
     # initializer decorator
     def initalizer(self, order=0):
+        print("Adding function to core 'initializer' to create init list")
         def real_decorator(function):
             self.cache["init"].append({"function": function, "order": order})
             def wrapper(*args, **kwargs):
@@ -484,11 +487,13 @@ class CraftBeerPi(ActorAPI, SensorAPI):
             while True:
                 try:
                     method(self)
+                    print("Starting Job = ", method)
                 except Exception as e:
                     self.app.logger.error("Exception" + method.__name__ + ": " + str(e))
                 self.socketio.sleep(interval)
 
 
         for  value in self.cache.get("background"):
+            print("Starting Other Background Task")
             t = self.socketio.start_background_task(target=job,  interval=value.get("interval"),  method=value.get("function"))
         #print(self.cache)

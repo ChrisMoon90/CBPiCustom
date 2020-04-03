@@ -70,11 +70,11 @@ class SensorActive(SensorBase):
     __running = False
 
     def is_running(self):
-
         return self.__running
 
     def init(self):
         self.__running = True
+        print("SensorActive is Running")
 
     def stop(self):
         self.__running = False
@@ -86,7 +86,7 @@ class SensorActive(SensorBase):
 
 class SensorPassive(SensorBase):
     def init(self):
-        print "INIT PASSIV SENSOR"
+        print "INIT PASSIVE SENSOR"
         pass
 
     def read(self):

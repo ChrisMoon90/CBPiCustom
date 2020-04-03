@@ -47,7 +47,7 @@ pp = pprint.PrettyPrinter(indent=6)
 
 
 def init_db():
-    print("INIT DB")
+    #print("INIT DB")
     with app.app_context():
         db = get_db()
 
@@ -58,15 +58,18 @@ def init_db():
             db.commit()
         except Exception as e:
             pass
-
+        
+print("INIT DB")
 init_db()
+print("INIT PLUGINS")
 initPlugins()
+print("run_init")
 cbpi.run_init()
 
 cbpi.run_background_processes()
 
 
-
+print("Finished Startup")
 app.logger.info("##########################################")
 app.logger.info("### STARTUP COMPLETE")
 app.logger.info("##########################################")

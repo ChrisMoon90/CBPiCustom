@@ -36,13 +36,15 @@ def init(cbpi):
     cbpi.init_sensors()
 
 
-@cbpi.backgroundtask(key="read_passiv_sensor", interval=10)
+@cbpi.backgroundtask(key="read_passiv_sensor", interval=5)
 def read_passive_sensor(api):
     """
     background process that reads all passive sensors in interval of 1 second
     :return: None
 
     """
+    printsensors = cbpi.cache.get("sensors")
+    print(printsensors)
     for key, value in cbpi.cache.get("sensors").iteritems():
         if value.mode == "P":
             value.instance.read()

@@ -1,3 +1,4 @@
+print("Loading Basic Auth")
 from modules import app, cbpi
 try:
   from flask_basicauth import BasicAuth
@@ -15,8 +16,10 @@ def auth_password():
   else:
     return password
 
+print("Basic auth decorator")
 @cbpi.initalizer(order=1)
 def init_basic_auth(self):
+  print("Basic auth function running")
   app.config['BASIC_AUTH_USERNAME'] = 'admin'
   app.config['BASIC_AUTH_PASSWORD'] = auth_password()
   app.config['BASIC_AUTH_FORCE'] = True
