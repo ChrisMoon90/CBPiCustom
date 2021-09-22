@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-print("Loading Atlas")
+print("LOADING ATLAS PLUGIN")
+
 from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
@@ -66,51 +67,39 @@ def get_ftdi_device_list():
         dev_list.append(serial)
     return dev_list
 
-def get_sensor(index):  #SELECT DEVICE   
-    devices = get_ftdi_device_list()
-    #print(devices)
-    global dev
-    try:
-        print(devices[int(index)])
-        dev = AtlasDevice(devices[int(index)])
-        return dev
-    except pylibftdi.FtdiError as e:
-        try:
-            dev.__del__()
-            print("Atlas Device Deleted")
-        except:
-            print( "Error0, ", e)
-            time.sleep(2)
-
 def get_temp(dev_IN):    #COLLECT TEMP READING
     try:
         dev_IN.send_cmd("R")
-        
         time.sleep(1) #WANT TO MAKE THIS SOCKETIOSLEEP
-        
         lines = dev_IN.read_lines()
         for i in range(len(lines)):
             if lines[i][0] != '*':
                 temp = lines[i]
-                dev_IN.__del__()
                 return temp
     except pylibftdi.FtdiError as e:
             print( "Error1, ", e)
-            time.sleep(2)
 
-def run_Temp(dev_active):  #PERFORMS ERROR CHECKING
+def run_Temp(dev):  #PERFORMS ERROR CHECKING
     try:
-        temp_long = get_temp(dev_active)
-        #cbpi.app.logger.info("temp_long = %s" % temp_long)
+        temp_raw = get_temp(dev)
         try:
-            #temp = round(float(temp_long), 2)
-            return temp_long
-        except: #catch all exceptions
-            print("Error5: could not convert temp_long with float")
-            time.sleep(1)
+            reading = float(temp_raw.strip())
+            return reading
+        except:
+            print("Error5: could not convert temp_raw to float")
+            formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            msg = "%s, Error converting to float: %s" % (formatted_time, temp_raw)
+            log_error(msg)
     except pylibftdi.FtdiError as e:
-        print("Error1, ", e)
-        time.sleep(2)
+        print("Error in run_temp, ", e)
+        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        msg = "%s, Error in get_temp with dev: %s" % (formatted_time, dev)
+        log_error(msg)
+
+def log_error(msg):
+    error_log = "./logs/TempError.log"
+    with open(error_log, "a") as file:
+        file.write(msg)
 
 
 @cbpi.sensor
@@ -118,6 +107,10 @@ class AtlasSensor(SensorActive):
 
     sensorSelect = Property.Select("Sensor Select", options=["0", "1", "2", "3"], description="Select available USB sensor")
     unitSelect = Property.Select("Unit Select", options=["Temp in F", "pH Value"], description="Select Unit")
+    last_reading = 0
+    
+    # def init(self):
+        #pass
     
     def get_unit(self):
         if self.unitSelect == "Temp in F":
@@ -140,23 +133,28 @@ class AtlasSensor(SensorActive):
         Active sensor has to handle its own loop
         :return: 
         '''
-        #dev_active.send_cmd("C,0") # turn off continuous mode
-        #dev_active.flush()
-        #cbpi.app.logger.info("Device %s Flushed" % dev_active)
-        
+        self.index = self.sensorSelect
+        self.devices = get_ftdi_device_list()
+        self.dev = AtlasDevice(self.devices[int(self.index)])
         while self.is_running():
             try:
-                index = self.sensorSelect
-                print("index = ", index)
-                dev_active = get_sensor(index)
-                #self.sleep(0.25)
-                reading = run_Temp(dev_active)
-                print("Sensor Reading = %s" % reading)
-                
-                self.data_received(reading)
-                self.sleep(3)
+                new_reading = run_Temp(self.dev)
+                temp_dif = abs(new_reading - self.last_reading)
+                if temp_dif > 5:                 
+                    formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    msg = "%s, New Reading: %s, Old Reading: %s \n" % (formatted_time, new_reading, self.last_reading)
+                    log_error(msg)                  
+                    print("Recorded Temp Error: New_Reading = %s, Old_reading = %s" % (new_reading, self.last_reading))
+                else:
+                    self.data_received(new_reading)
+                    print("Sensor Reading from index %s = %s" % (self.index, new_reading))
+                self.last_reading = new_reading
+                self.sleep(2)
             except:
                 print("Error3: could not run execute loop.")
+                formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                msg = "%s, Error running temp loop\n" % formatted_time
+                log_error(msg) 
                 self.sleep(2)
                 
     #@classmethod

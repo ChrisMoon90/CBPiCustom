@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-print("Main Start")
+print("MAIN START")
 from modules import socketio, app, cbpi
 from modules.core.hardware import SensorActive
 
@@ -9,7 +9,7 @@ try:
 except ValueError:
     port = 5000
 
-num_users = 0
+#num_users = 0
 #@socketio.on('connect')
 def RestartSensors():
     global num_users
@@ -18,5 +18,10 @@ def RestartSensors():
         cbpi.init_sensors()
 
 #app.debug=True
-print("Starting SocketIO socket")
-socketio.run(app, host='192.168.0.30', port=port)
+while True:
+        try:
+            socketio.run(app, host='192.168.0.30', port=port)
+        except NetworkException:
+            sleep(2)
+            continue
+        break

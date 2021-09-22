@@ -93,7 +93,7 @@ class SensorAPI(object):
             value.get("class").init_global()
 
         for key in self.cache.get("sensors"):
-            print("Sensor Initiated: ", key)
+            # print("Sensor Initiated: ", key)
             self.init_sensor(key)
 
     def stop_sensor(self, id):
@@ -403,7 +403,7 @@ class CraftBeerPi(ActorAPI, SensorAPI):
 
     # initializer decorator
     def initalizer(self, order=0):
-        print("Adding function to core 'initializer' to create init list")
+        # print("Adding function to core 'initializer' to create init list")
         def real_decorator(function):
             self.cache["init"].append({"function": function, "order": order})
             def wrapper(*args, **kwargs):
@@ -435,7 +435,6 @@ class CraftBeerPi(ActorAPI, SensorAPI):
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '-1'
             return response
-
         return update_wrapper(no_cache, view)
 
     def init_kettle(self, id):
@@ -445,7 +444,6 @@ class CraftBeerPi(ActorAPI, SensorAPI):
         except:
             self.notify("Kettle Setup Faild", "Please check %s configuration" % value.name, type="danger", timeout=None)
             self.app.logger.error("Initializing of Kettle %s failed" % id)
-
 
     def run_init(self):
         '''
@@ -458,10 +456,7 @@ class CraftBeerPi(ActorAPI, SensorAPI):
             self.app.logger.info("INITIALIZER - METHOD %s PAHT %s: " % (i.get("function").__name__, str(inspect.getmodule(i.get("function")).__file__) ))
             i.get("function")(self)
 
-
-
     def backgroundtask(self, key, interval, config_parameter=None):
-
         '''
         Background Task Decorator
         :param key: 
@@ -487,7 +482,7 @@ class CraftBeerPi(ActorAPI, SensorAPI):
             while True:
                 try:
                     method(self)
-                    print("Starting Job = ", method)
+                    # print("Starting Job = ", method)
                 except Exception as e:
                     self.app.logger.error("Exception" + method.__name__ + ": " + str(e))
                 self.socketio.sleep(interval)

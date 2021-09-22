@@ -44,7 +44,7 @@ def read_passive_sensor(api):
 
     """
     printsensors = cbpi.cache.get("sensors")
-    print(printsensors)
+    # print(printsensors)
     for key, value in cbpi.cache.get("sensors").iteritems():
         if value.mode == "P":
             value.instance.read()
