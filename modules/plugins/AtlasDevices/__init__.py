@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 print("LOADING ATLAS PLUGIN")
 
+#from tkinter import E
 from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
 
-import string
+#import string
 import pylibftdi
 from pylibftdi.device import Device
 from pylibftdi.driver import FtdiError
 from pylibftdi import Driver
 
-import os
+#import os
 import time
 
 class AtlasDevice(Device):
@@ -55,7 +56,7 @@ class AtlasDevice(Device):
             self.write(buf)
             return True
         except FtdiError:
-            print("Error 4: send_cmd failed.")
+            print("Error: send_cmd failed.")
             return False
 
 
@@ -74,27 +75,14 @@ def get_temp(dev_IN):    #COLLECT TEMP READING
         lines = dev_IN.read_lines()
         for i in range(len(lines)):
             if lines[i][0] != '*':
-                temp = lines[i]
-                return temp
+                temp_raw = lines[i]
     except pylibftdi.FtdiError as e:
-            print( "Error1, ", e)
-
-def run_Temp(dev):  #PERFORMS ERROR CHECKING
-    try:
-        temp_raw = get_temp(dev)
-        try:
-            reading = float(temp_raw.strip())
-            return reading
-        except:
-            print("Error5: could not convert temp_raw to float")
-            formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            msg = "%s, Error converting to float: %s" % (formatted_time, temp_raw)
-            log_error(msg)
-    except pylibftdi.FtdiError as e:
-        print("Error in run_temp, ", e)
+        print( "Error1, ", e)
         formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msg = "%s, Error in get_temp with dev: %s" % (formatted_time, dev)
+        msg = "%s, Error running get_temp @ dev: %s\n" % (formatted_time, dev_IN)
         log_error(msg)
+        temp_raw = "ERR"
+    return temp_raw
 
 def log_error(msg):
     error_log = "./logs/TempError.log"
@@ -137,25 +125,25 @@ class AtlasSensor(SensorActive):
         self.devices = get_ftdi_device_list()
         self.dev = AtlasDevice(self.devices[int(self.index)])
         while self.is_running():
+            temp_raw = get_temp(self.dev)
             try:
-                new_reading = run_Temp(self.dev)
+                new_reading = float(temp_raw.strip())
                 temp_dif = abs(new_reading - self.last_reading)
-                if temp_dif > 5:                 
+                if temp_dif > 10:                 
                     formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    msg = "%s, New Reading: %s, Old Reading: %s \n" % (formatted_time, new_reading, self.last_reading)
+                    msg = "%s, New Reading: %s, Old Reading: %s, dev_index: %s \n" % (formatted_time, new_reading, self.last_reading, self.index)
+                    print(msg)
                     log_error(msg)                  
-                    print("Recorded Temp Error: New_Reading = %s, Old_reading = %s" % (new_reading, self.last_reading))
                 else:
                     self.data_received(new_reading)
                     print("Sensor Reading from index %s = %s" % (self.index, new_reading))
                 self.last_reading = new_reading
-                self.sleep(2)
             except:
-                print("Error3: could not run execute loop.")
                 formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                msg = "%s, Error running temp loop\n" % formatted_time
+                msg = "%s, Error converting temp_raw to float: %s, dev_index: %s\n" % (formatted_time, temp_raw, self.index)
+                print(msg)
                 log_error(msg) 
-                self.sleep(2)
+            self.sleep(2)
                 
     #@classmethod
     #def init_global(self):

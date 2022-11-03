@@ -77,6 +77,7 @@ def readTilt(cache):
                 #print(beacons)
                 for beacon in beacons:
                     if beacon['uuid'] in TILTS.keys():
+                        print("Tilt Detected")
                         cache[TILTS[beacon['uuid']]] = {'Temp': beacon['major'], 'Gravity': beacon['minor']}
                         logTilt("Tilt data received: Temp %s Gravity %s" % (beacon['major'], beacon['minor']))
                         print("Tilt data received: Temp %s Gravity %s" % (beacon['major'], beacon['minor']))
