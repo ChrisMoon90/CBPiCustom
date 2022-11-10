@@ -68,22 +68,6 @@ def get_ftdi_device_list():
         dev_list.append(serial)
     return dev_list
 
-def get_temp(dev_IN):    #COLLECT TEMP READING
-    try:
-        dev_IN.send_cmd("R")
-        time.sleep(1) #WANT TO MAKE THIS SOCKETIOSLEEP
-        lines = dev_IN.read_lines()
-        for i in range(len(lines)):
-            if lines[i][0] != '*':
-                temp_raw = lines[i]
-    except pylibftdi.FtdiError as e:
-        print( "Error1, ", e)
-        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msg = "%s, Error running get_temp @ dev: %s\n" % (formatted_time, dev_IN)
-        log_error(msg)
-        temp_raw = "ERR"
-    return temp_raw
-
 def log_error(msg):
     error_log = "./logs/TempError.log"
     with open(error_log, "a") as file:
@@ -115,7 +99,7 @@ class AtlasSensor(SensorActive):
         '''
         print("Atlas Sensor Stopped")
         pass
-
+    
     def execute(self):
         '''
         Active sensor has to handle its own loop
@@ -125,24 +109,41 @@ class AtlasSensor(SensorActive):
         self.devices = get_ftdi_device_list()
         self.dev = AtlasDevice(self.devices[int(self.index)])
         while self.is_running():
-            temp_raw = get_temp(self.dev)
+            # temp_raw = self.get_temp(self.dev)
+            try:
+                # print("sending command")
+                self.dev.send_cmd("R")
+                # print("command sent")
+                self.sleep(1.5) #WANT TO MAKE THIS SOCKETIOSLEEP
+                lines = self.dev.read_lines()
+                for i in range(len(lines)):
+                    if lines[i][0] != '*':
+                        temp_raw = lines[i]
+            except: #except pylibftdi.FtdiError as e:
+                print( "Error1, ")
+                formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                msg = "%s, Error running get_temp @ dev: %s\n" % (formatted_time, self.dev)
+                log_error(msg)
+                temp_raw = "ERR"
+                self.sleep(1.5)
+
             try:
                 new_reading = float(temp_raw.strip())
                 temp_dif = abs(new_reading - self.last_reading)
                 if temp_dif > 10:                 
                     formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    msg = "%s, New Reading: %s, Old Reading: %s, dev_index: %s \n" % (formatted_time, new_reading, self.last_reading, self.index)
+                    msg = "%s, New Reading: %s, Old Reading: %s, dev_index: %s" % (formatted_time, new_reading, self.last_reading, self.index)
                     print(msg)
-                    log_error(msg)                  
+                    log_error("%s\n" % (msg))                  
                 else:
                     self.data_received(new_reading)
                     print("Sensor Reading from index %s = %s" % (self.index, new_reading))
                 self.last_reading = new_reading
             except:
                 formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                msg = "%s, Error converting temp_raw to float: %s, dev_index: %s\n" % (formatted_time, temp_raw, self.index)
+                msg = "%s, Error converting temp_raw to float: %s, dev_index: %s" % (formatted_time, temp_raw, self.index)
                 print(msg)
-                log_error(msg) 
+                log_error("%s\n" % (msg))
             self.sleep(2)
                 
     #@classmethod
