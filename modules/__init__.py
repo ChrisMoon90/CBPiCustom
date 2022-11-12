@@ -38,6 +38,8 @@ import modules.kettle
 import modules.recipe_import
 import modules.core.db_mirgrate
 
+import modules.SmartLogging
+
 from app_config import cbpi
 # Build the database:
 # This will create the database file using SQLAlchemy

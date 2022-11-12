@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 print("LOADING ATLAS PLUGIN")
 
-#from tkinter import E
 from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property
 
-#import string
-import pylibftdi
+from modules.SmartLogging import smartlog
+
+# import pylibftdi
 from pylibftdi.device import Device
 from pylibftdi.driver import FtdiError
 from pylibftdi import Driver
 
-#import os
 import time
 
 class AtlasDevice(Device):
@@ -73,6 +72,10 @@ def log_error(msg):
     with open(error_log, "a") as file:
         file.write(msg)
 
+def send_to_logging(index, temp):
+    index_val = int(str(index))
+    smartlog.temps[index_val] = temp
+
 
 @cbpi.sensor
 class AtlasSensor(SensorActive):
@@ -109,21 +112,18 @@ class AtlasSensor(SensorActive):
         self.devices = get_ftdi_device_list()
         self.dev = AtlasDevice(self.devices[int(self.index)])
         while self.is_running():
-            # temp_raw = self.get_temp(self.dev)
             try:
-                # print("sending command")
                 self.dev.send_cmd("R")
-                # print("command sent")
-                self.sleep(1.5) #WANT TO MAKE THIS SOCKETIOSLEEP
+                self.sleep(1.5) #MADE THIS SOCKETIOSLEEP & FIXED LATENCY ISSUE
                 lines = self.dev.read_lines()
                 for i in range(len(lines)):
                     if lines[i][0] != '*':
                         temp_raw = lines[i]
             except: #except pylibftdi.FtdiError as e:
-                print( "Error1, ")
                 formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 msg = "%s, Error running get_temp @ dev: %s\n" % (formatted_time, self.dev)
-                log_error(msg)
+                print(msg)
+                log_error("%s\n" % (msg))
                 temp_raw = "ERR"
                 self.sleep(1.5)
 
@@ -137,6 +137,7 @@ class AtlasSensor(SensorActive):
                     log_error("%s\n" % (msg))                  
                 else:
                     self.data_received(new_reading)
+                    send_to_logging(self.index, new_reading)
                     print("Sensor Reading from index %s = %s" % (self.index, new_reading))
                 self.last_reading = new_reading
             except:

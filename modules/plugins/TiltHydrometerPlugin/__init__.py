@@ -10,6 +10,8 @@ import blescan
 
 import numpy as np
 
+from modules.SmartLogging import smartlog
+
 tilt_proc = None
 tilt_manager = None
 tilt_cache = {}
@@ -95,6 +97,10 @@ def logTilt(text):
     with open(filename, "a") as file:
         file.write("%s,%s\n" % (formatted_time, text))
 
+def send_to_logging(tilt):
+    smartlog.temps['Tilt'] = tilt
+
+
 @cbpi.sensor
 class TiltHydrometer(SensorPassive):
 
@@ -148,6 +154,7 @@ class TiltHydrometer(SensorPassive):
                 reading = calibrate(reading, self.calibration_equ)
                 reading = round(reading, 2)
             self.data_received(reading)
+            send_to_logging(reading)
             
 @cbpi.initalizer(order=9999)
 def init(cbpi):
