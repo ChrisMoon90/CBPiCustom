@@ -7,12 +7,11 @@ class logAPI:
     def __init__(self):
         self.temps = {0: 0, 1: 0, 2: 0, 'Tilt': 0}
         self.filename = "./logs/Sensors.log"
-        thread1 = socketio.start_background_task(target=self.save_to_file, sleep=5)
+        thread1 = socketio.start_background_task(target=self.save_to_file, sleep=120)
 
     def save_to_file(self, sleep):
         print("Starting Logging")
         socketio.sleep(10)
-        print("Cont logging")
 
         while True: 
             formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

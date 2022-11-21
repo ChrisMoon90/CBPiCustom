@@ -1,2 +1,2 @@
-logs/
-logs/app.log
+*.log
+*.pyc
