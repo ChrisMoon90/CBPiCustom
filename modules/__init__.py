@@ -61,13 +61,10 @@ def init_db():
         except Exception as e:
             pass
         
-print("INIT DB")
-init_db()
-print("INIT PLUGINS")
-initPlugins()
-print("run_init")
-cbpi.run_init()
 
+init_db()
+initPlugins()
+cbpi.run_init()
 cbpi.run_background_processes()
 
 

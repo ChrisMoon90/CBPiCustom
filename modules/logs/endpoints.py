@@ -60,7 +60,7 @@ class LogView(FlaskView):
             reader = csv.reader(f)
             for row in reader:
                 try:
-                    array.append([int((datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") - datetime.datetime(1970, 1, 1)).total_seconds()) * 1000, float(row[1])])
+                    array.append([int((datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") - datetime.datetime(1970, 1, 1)).total_seconds()) * 1000, float(row[1])]) #, float(row[2])])
                 except:
                     pass
         return array

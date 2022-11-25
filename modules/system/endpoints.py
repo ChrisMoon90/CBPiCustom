@@ -139,6 +139,5 @@ class SystemView(FlaskView):
 
 @cbpi.initalizer()
 def init(cbpi):
-    print("Initializing all core 'init' functions")
     SystemView.api = cbpi
     SystemView.register(cbpi.app, route_base='/api/system')

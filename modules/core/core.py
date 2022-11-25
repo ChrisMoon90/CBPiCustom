@@ -11,7 +11,6 @@ from flask_classy import FlaskView, route
 from time import localtime, strftime
 from functools import wraps, update_wrapper
 
-
 from props import *
 
 from hardware import *
@@ -112,7 +111,7 @@ class SensorAPI(object):
         :param id: 
         :return: 
         '''
-        print("init sensor id = ", id)
+
         def start_active_sensor(instance):
             '''
             start active sensors as background job
@@ -137,7 +136,7 @@ class SensorAPI(object):
             else:
                 # Active Sensors
                 value.mode = "A"
-                print("Starting Active Sensor Background Task")
+                # print("Starting Active Sensor Background Task")
                 t = self.socketio.start_background_task(target=start_active_sensor, instance=value.instance)
 
         except Exception as e:
@@ -489,6 +488,6 @@ class CraftBeerPi(ActorAPI, SensorAPI):
 
 
         for  value in self.cache.get("background"):
-            print("Starting Other Background Task")
+            # print("Starting Other Background Task")
             t = self.socketio.start_background_task(target=job,  interval=value.get("interval"),  method=value.get("function"))
         #print(self.cache)

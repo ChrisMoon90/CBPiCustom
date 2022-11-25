@@ -10,7 +10,7 @@ class logAPI:
         thread1 = socketio.start_background_task(target=self.save_to_file, sleep=120)
 
     def save_to_file(self, sleep):
-        print("Starting Logging")
+        # print("Starting Smart Logging")
         socketio.sleep(10)
 
         while True: 

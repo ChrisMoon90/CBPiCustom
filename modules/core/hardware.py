@@ -44,7 +44,7 @@ class SensorBase(Base):
     last_value = 0
 
     def init(self):
-        print "INIT Base SENSOR"
+        pass #print "INIT Base SENSOR"
 
     def stop(self):
         print "STOP SENSOR"

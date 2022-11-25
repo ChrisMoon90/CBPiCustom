@@ -79,10 +79,10 @@ def readTilt(cache):
                 #print(beacons)
                 for beacon in beacons:
                     if beacon['uuid'] in TILTS.keys():
-                        print("Tilt Detected")
+                        # print("Tilt Detected")
                         cache[TILTS[beacon['uuid']]] = {'Temp': beacon['major'], 'Gravity': beacon['minor']}
                         logTilt("Tilt data received: Temp %s Gravity %s" % (beacon['major'], beacon['minor']))
-                        print("Tilt data received: Temp %s Gravity %s" % (beacon['major'], beacon['minor']))
+                        # print("Tilt data received: Temp %s Gravity %s" % (beacon['major'], beacon['minor']))
                 time.sleep(4)
         except Exception as e:
             logTilt("Error starting Bluetooth device, exception: %s" % str(e))
@@ -114,7 +114,7 @@ class TiltHydrometer(SensorPassive):
     
     def init(self):
         # Load calibration data from plugin
-        print("Tilt init script running")
+        # print("Tilt init script running")
         x = np.empty([0])
         y = np.empty([0])
         x, y = add_calibration_point(x, y, self.x_cal_1)
@@ -142,7 +142,6 @@ class TiltHydrometer(SensorPassive):
             return " "
             
     def read(self):
-        #print("Running 'read' script in Tilt")
         if self.color in tilt_cache:
             if self.sensorType == "Gravity":
                 reading = calcGravity(tilt_cache[self.color]['Gravity'], self.unitsGravity)
@@ -161,7 +160,6 @@ def init(cbpi):
     global tilt_proc
     global tilt_manager
     global tilt_cache   
-    print("INITIALIZE TILT MODULE")
     
     tilt_manager = Manager()
     tilt_cache = tilt_manager.dict()

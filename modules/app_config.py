@@ -1,19 +1,11 @@
-print("Starting app_config")
 import json
 import sys, os
 from flask import Flask, render_template, redirect, json, g
-
-
 from flask_socketio import SocketIO, emit
-
 import logging
-
-
-
 from modules.core.core import CraftBeerPi, ActorBase, SensorBase
 from modules.core.db import DBModel
 
-print("Loaded app_config libraries")
 
 app = Flask(__name__)
 
@@ -51,7 +43,6 @@ class ComplexEncoder(json.JSONEncoder):
 app.json_encoder = ComplexEncoder
 socketio = SocketIO(app, json=json, logging=False)
 cbpi   = CraftBeerPi(app, socketio)
-print("Finished app_config")
 
 app.logger.info("##########################################")
 app.logger.info("### NEW STARTUP Version 3.0")

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-print("LOADING ATLAS PLUGIN")
-
 from modules import cbpi
 from modules.core.hardware import SensorActive
 from modules.core.props import Property

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-print("MAIN START")
+print("Starting CraftbeerPi...")
 from modules import socketio, app, cbpi
 from modules.core.hardware import SensorActive
 

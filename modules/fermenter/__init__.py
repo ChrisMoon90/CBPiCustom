@@ -210,7 +210,6 @@ class FermenterView(BaseView):
     def toggle(self, id):
         fermenter = cbpi.cache.get(self.cache_key)[id]
         try:
-            print fermenter.state
             if fermenter.state is False:
                 # Start controller
                 if fermenter.logic is not None:
